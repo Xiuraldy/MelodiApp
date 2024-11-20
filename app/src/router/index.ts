@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import AuthView from '../views/AuthView.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
@@ -7,22 +7,13 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: HomeView
+      name: 'auth',
+      component: AuthView
     },
     {
-      path: '/users',
-      name: 'users',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/UsersView.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/entries',
-      name: 'entries',
-      component: () => import('../views/EntriesView.vue'),
+      path: '/census',
+      name: 'census',
+      component: () => import('../views/CensusView.vue'),
       meta: { requiresAuth: true }
     }
   ]
@@ -30,10 +21,10 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
-  if (to.name === 'home' && authStore.isLoggedIn) {
-    next({ name: 'users' })
+  if (to.name === 'auth' && authStore.isLoggedIn) {
+    next({ name: 'census' })
   } else if (to.meta.requiresAuth && !authStore.isLoggedIn) {
-    next({ name: 'home' })
+    next({ name: 'auth' })
   } else {
     next()
   }

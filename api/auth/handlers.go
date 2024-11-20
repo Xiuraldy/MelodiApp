@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,7 @@ import (
 
 func Register(c *gin.Context) {
 	var userInput models.UserInput
+
 	if err := c.ShouldBindJSON(&userInput); err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
@@ -28,6 +30,18 @@ func Register(c *gin.Context) {
 		Username: userInput.Username,
 		Email:    userInput.Email,
 		Password: userInput.Password,
+	}
+
+	if userInput.Username == "" || userInput.Email == "" || userInput.Password == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incomplete fields"})
+		return
+	}
+
+	emailRegex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	re := regexp.MustCompile(emailRegex)
+	if !re.MatchString(userInput.Email) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
+		return
 	}
 
 	var existingUser models.User
@@ -43,11 +57,33 @@ func Register(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"id":       user.ID,
-		"email":    user.Email,
-		"username": user.Username,
-	})
+	sessionToken := uuid.NewV5(uuid.UUID{}, "session").String()
+
+	session := shared.Session{
+		Uid:        user.ID,
+		ExpiryTime: time.Now().Add(10 * time.Minute),
+	}
+
+	shared.Sessions[sessionToken] = session
+
+	claims := shared.Payload{
+		MapClaims: jwt.MapClaims{
+			"iat":     jwt.NewNumericDate(time.Now()),
+			"eat":     jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
+			"user_id": user.ID,
+		},
+		Session: sessionToken,
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signinKey := []byte(os.Getenv("JWT_SECRET_KEY"))
+
+	tokenString, err := token.SignedString(signinKey)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": tokenString})
 }
 
 func Login(c *gin.Context) {
@@ -55,6 +91,18 @@ func Login(c *gin.Context) {
 	var user models.User
 
 	c.BindJSON(&input)
+
+	if input.Email == "" || input.Password == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incomplete fields"})
+		return
+	}
+
+	emailRegex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	re := regexp.MustCompile(emailRegex)
+	if !re.MatchString(input.Email) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
+		return
+	}
 
 	database.DBConn.Where("email=?", input.Email).Find(&user)
 
@@ -69,15 +117,16 @@ func Login(c *gin.Context) {
 
 	session := shared.Session{
 		Uid:        user.ID,
-		ExpiryTime: time.Now().Add(1 * time.Minute),
+		ExpiryTime: time.Now().Add(10 * time.Minute),
 	}
 
 	shared.Sessions[sessionToken] = session
 
 	claims := shared.Payload{
 		MapClaims: jwt.MapClaims{
-			"iat": jwt.NewNumericDate(time.Now()),                      //issued at
-			"eat": jwt.NewNumericDate(time.Now().Add(1 * time.Minute)), //expired at
+			"iat":     jwt.NewNumericDate(time.Now()),
+			"eat":     jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
+			"user_id": user.ID,
 		},
 		Session: sessionToken,
 	}

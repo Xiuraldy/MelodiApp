@@ -9,12 +9,6 @@ export const useAuthStore = defineStore('auth', () => {
   const session = ref('')
 
   const isLoggedIn = computed(() => !!session.value)
-  //session.value -> string = "12345..." -> truthy
-  // -> con el primer bang pasa a false
-  // -> con el segundo bang pasa a true
-  //session.value -> string = "" -> falsey
-  // -> con el primer bang pasa a true
-  // -> con el segundo bang pasa a false
 
   async function init() {
     const tokenStr = sessionStorage.getItem('token')
@@ -27,20 +21,12 @@ export const useAuthStore = defineStore('auth', () => {
     const payload = jwtDecode(tokenStr) as JWTPayload
     const now = new Date()
     const diff = payload.MapClaims.eat * 1000 - now.getTime()
-
-    // If we want to ask for a session refresh
-    // setTimeout(
-    //   () => {
-    //     confirm('Session almost finished')
-    //   },
-    //   diff - 30 * 1000
-    // )
     sessionStorage.setItem('token', tokenStr)
     session.value = payload.session
     setTimeout(() => {
       clearSession()
     }, diff)
-    router.push('/users')
+    router.push('/census')
   }
 
   function clearSession() {
@@ -49,5 +35,5 @@ export const useAuthStore = defineStore('auth', () => {
     router.push('/')
   }
 
-  return { isLoggedIn, init, clearSession, setSession }
+  return { isLoggedIn, init, clearSession, setSession, session }
 })
