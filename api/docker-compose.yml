@@ -21,7 +21,7 @@ services:
     build:
       context: .
       args:
-        - PORT=:8080
+        - PORT=:80
         - GIN_MODE=release
     environment:
       - DB_HOST=$DB_HOST
