@@ -3,7 +3,7 @@ services:
     build: 
       context: .
       args:
-        - PORT=3004
+        - PORT=:3004
         - VITE_PUBLIC_API_URL=http://api:3004
     ports:
       - 80:3004
@@ -21,7 +21,7 @@ services:
     build:
       context: .
       args:
-        - PORT=:80
+        - PORT=:8080
         - GIN_MODE=release
     environment:
       - DB_HOST=$DB_HOST
