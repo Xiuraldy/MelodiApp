@@ -40,11 +40,20 @@ func setupRouter() *gin.Engine {
 func loadEnvVars() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("Warning: .env file not found. Using system environment variables.")
+	}
+
+	requiredVars := []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "PORT"}
+	for _, v := range requiredVars {
+		if os.Getenv(v) == "" {
+			log.Fatalf("Error: missing required environment variable %s", v)
+		}
 	}
 }
 
 func main() {
+	loadEnvVars()
+
 	if os.Getenv("GIN_MODE") != "release" {
 		err := godotenv.Load()
 		if err != nil {
@@ -70,7 +79,6 @@ func main() {
 	})
 	fmt.Printf("Server running on port %s\n", os.Getenv("PORT"))
 
-	loadEnvVars()
 	database.CreateDbConnection()
 	database.DBConn.AutoMigrate(&models.User{}, &models.Person{}, &models.UserConfig{})
 
