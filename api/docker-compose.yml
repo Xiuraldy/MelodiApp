@@ -3,12 +3,12 @@ services:
     build: 
       context: .
       args:
-        - PORT=:3004
-        - VITE_PUBLIC_API_URL=http://api:8080
+        - PORT=3004
+        - VITE_PUBLIC_API_URL=http://api:3004
     ports:
       - 80:3004
     environment:
-      - VITE_PUBLIC_API_URL=http://api:8080
+      - VITE_PUBLIC_API_URL=http://api:3004
       - DB_HOST=$DB_HOST
       - DB_PORT=$DB_PORT
       - DB_USER=$DB_USER
@@ -21,7 +21,7 @@ services:
     build:
       context: .
       args:
-        - PORT=:80
+        - PORT=:8080
         - GIN_MODE=release
     environment:
       - DB_HOST=$DB_HOST
