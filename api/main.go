@@ -6,9 +6,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -50,13 +52,14 @@ func loadEnvVars() {
 }
 
 func main() {
+	loadEnvVars()
+
 	if os.Getenv("GIN_MODE") != "release" {
 		err := godotenv.Load()
 		if err != nil {
 			log.Fatal("Unable to load env vars")
 		}
 	}
-
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),
@@ -68,31 +71,32 @@ func main() {
 	if err != nil {
 		log.Fatal("Unable to connect to DB")
 	}
-	database.CreateDbConnection()
-	database.DBConn.AutoMigrate(&models.User{}, &models.Person{}, &models.UserConfig{})
-
-	router := gin.Default()
-	router.Use(shared.Cors())
-
-	router.GET("/", func(c *gin.Context) {
+	r := gin.Default()
+	r.GET("/", func(c *gin.Context) {
 		tx := DBConn.Exec("SELECT 1")
 		fmt.Printf("Error: %v\n", tx.Error)
 		c.JSON(http.StatusOK, gin.H{"Success": true})
 	})
+	fmt.Printf("Server running on port %s\n", os.Getenv("PORT"))
+	r.Run(os.Getenv("PORT"))
 
-	users.AddUserRoutes(router)
-	census.AddCensusRoutes(router)
-	auth.AddAuthRoutes(router)
-	userConfig.AddUserConfigRoutes(router)
+	database.CreateDbConnection()
+	database.DBConn.AutoMigrate(&models.User{}, &models.Person{}, &models.UserConfig{})
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = ":8080"
-	}
-	fmt.Printf("Server running on port %s\n", port)
-	if err := router.Run(port); err != nil {
-		log.Fatalf("Error starting server: %v", err)
-	}
+	getData()
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigs
+		clearData()
+		os.Exit(0)
+	}()
+
+	router := setupRouter()
+
+	router.Run(":3334")
 }
 
 func insertPerson(person models.Person, wg *sync.WaitGroup) {
