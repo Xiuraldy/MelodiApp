@@ -5,10 +5,10 @@ services:
       args:
         - PORT=:8080
         - GIN_MODE=release
-      env_file:
-      - .env
     ports:
       - 80:8080
+    env_file:
+      - .env
     environment:
       - DB_HOST=$DB_HOST
       - DB_PORT=$DB_PORT
