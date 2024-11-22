@@ -40,18 +40,13 @@ func setupRouter() *gin.Engine {
 func loadEnvVars() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("Error loading .env file", err)
 	}
 }
 
 func main() {
 	loadEnvVars()
-	if os.Getenv("GIN_MODE") != "release" {
-		err := godotenv.Load()
-		if err != nil {
-			log.Fatal("Unable to load env vars", err)
-		}
-	}
+
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),
