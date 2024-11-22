@@ -3,7 +3,7 @@ services:
     build: 
       context: .
       args:
-        - PORT=:3004
+        - PORT=3004
         - VITE_PUBLIC_API_URL=http://api:3004
     ports:
       - 80:3004
