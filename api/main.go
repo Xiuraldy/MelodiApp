@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -14,7 +15,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"trucode.app/api/auth"
 	"trucode.app/api/census"
 	"trucode.app/api/database"
@@ -22,6 +22,8 @@ import (
 	"trucode.app/api/shared"
 	"trucode.app/api/userConfig"
 	"trucode.app/api/users"
+
+	"gorm.io/gorm"
 )
 
 func setupRouter() *gin.Engine {
@@ -31,28 +33,25 @@ func setupRouter() *gin.Engine {
 	census.AddCensusRoutes(router)
 	auth.AddAuthRoutes(router)
 	userConfig.AddUserConfigRoutes(router)
+
 	return router
 }
 
 func loadEnvVars() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("Warning: .env file not found. Using system environment variables.")
-	}
-
-	requiredVars := []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "PORT"}
-	for _, v := range requiredVars {
-		if os.Getenv(v) == "" {
-			log.Fatalf("Error: missing required environment variable %s", v)
-		}
+		log.Fatal("Error loading .env file")
 	}
 }
 
 func main() {
-	// Cargar las variables de entorno
 	loadEnvVars()
-
-	// Configurar la conexión a la base de datos
+	if os.Getenv("GIN_MODE") != "release" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Unable to load env vars")
+		}
+	}
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),
@@ -62,19 +61,21 @@ func main() {
 	)
 	DBConn, err := gorm.Open(postgres.Open(connStr))
 	if err != nil {
-		log.Fatal("Unable to connect to DB: ", err)
+		log.Fatal("Unable to connect to DB")
 	}
-	database.DBConn = DBConn // Asigna la conexión globalmente
+	r := gin.Default()
+	r.GET("/", func(c *gin.Context) {
+		tx := DBConn.Exec("SELECT 1")
+		fmt.Printf("Error: %v\n", tx.Error)
+		c.JSON(http.StatusOK, gin.H{"Success": true})
+	})
+	fmt.Printf("Server running on port %s\n", os.Getenv("PORT"))
 
-	// Migraciones de la base de datos
-	if err := database.DBConn.AutoMigrate(&models.User{}, &models.Person{}, &models.UserConfig{}); err != nil {
-		log.Fatalf("Error during migration: %v", err)
-	}
+	database.CreateDbConnection()
+	database.DBConn.AutoMigrate(&models.User{}, &models.Person{}, &models.UserConfig{})
 
-	// Procesar los datos iniciales
 	getData()
 
-	// Manejo de señales para limpiar datos al salir
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
@@ -84,36 +85,29 @@ func main() {
 		os.Exit(0)
 	}()
 
-	// Configuración del servidor
 	router := setupRouter()
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = ":8080" // Valor predeterminado
-	}
-	fmt.Printf("Server running on port %s\n", port)
-	if err := router.Run(port); err != nil {
-		log.Fatalf("Error starting server: %v", err)
-	}
+
+	router.Run(":3334")
 }
 
 func insertPerson(person models.Person, wg *sync.WaitGroup) {
 	defer wg.Done()
-	if err := database.DBConn.Create(&person).Error; err != nil {
-		log.Printf("Error inserting person: %v", err)
-	}
+	database.DBConn.Create(&person)
 }
 
 func getData() {
+
 	file, err := os.Open("dataCensus/source.data")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer file.Close()
 
 	csvReader := csv.NewReader(file)
+
 	csvReaderRead, _ := csvReader.ReadAll()
 
 	var wg sync.WaitGroup
+
 	for _, line := range csvReaderRead[1:] {
 		wg.Add(1)
 
@@ -143,13 +137,14 @@ func getData() {
 		}
 
 		go insertPerson(person, &wg)
+
 	}
 	wg.Wait()
 }
 
 func clearData() {
 	if err := database.DBConn.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Person{}).Error; err != nil {
-		log.Printf("Error clearing data: %v", err)
+		log.Printf("Error al eliminar datos de Person: %v", err)
 	}
-	log.Println("Data cleared from table Person.")
+	log.Println("Datos eliminados de la tabla Person.")
 }
