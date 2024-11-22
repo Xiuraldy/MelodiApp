@@ -5,6 +5,8 @@ services:
       args:
         - PORT=:8080
         - GIN_MODE=release
+      env_file:
+      - .env
     ports:
       - 80:8080
     environment:
