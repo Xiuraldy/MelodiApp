@@ -16,7 +16,7 @@ services:
       - api
   api:
     build:
-      context: ./api
+      context: .
       args:
         - PORT=:8080
         - GIN_MODE=release
