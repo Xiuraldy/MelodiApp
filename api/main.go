@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"gorm.io/driver/postgres"
 	"trucode.app/api/auth"
 	"trucode.app/api/census"
 	"trucode.app/api/database"
@@ -42,6 +45,31 @@ func loadEnvVars() {
 }
 
 func main() {
+	if os.Getenv("GIN_MODE") != "release" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Unable to load env vars")
+		}
+	}
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+	)
+	DBConn, err := gorm.Open(postgres.Open(connStr))
+	if err != nil {
+		log.Fatal("Unable to connect to DB")
+	}
+	r := gin.Default()
+	r.GET("/", func(c *gin.Context) {
+		tx := DBConn.Exec("SELECT 1")
+		fmt.Printf("Error: %v\n", tx.Error)
+		c.JSON(http.StatusOK, gin.H{"Success": true})
+	})
+	fmt.Printf("Server running on port %s\n", os.Getenv("PORT"))
+
 	loadEnvVars()
 	database.CreateDbConnection()
 	database.DBConn.AutoMigrate(&models.User{}, &models.Person{}, &models.UserConfig{})
