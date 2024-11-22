@@ -5,7 +5,6 @@ RUN mkdir app
 WORKDIR /app
 
 COPY go.mod go.sum ./
-COPY .env .env
 
 RUN go mod download
 
