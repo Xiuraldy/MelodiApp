@@ -52,7 +52,7 @@ func loadEnvVars() {
 }
 
 func main() {
-	loadEnvVars()
+	// loadEnvVars()
 
 	if os.Getenv("GIN_MODE") != "release" {
 		err := godotenv.Load()
