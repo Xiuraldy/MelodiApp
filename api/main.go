@@ -54,6 +54,13 @@ func loadEnvVars() {
 func main() {
 	// loadEnvVars()
 
+	if os.Getenv("GIN_MODE") != "release" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Unable to load env vars")
+		}
+	}
+
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),
@@ -72,6 +79,7 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"Success": true})
 	})
 	fmt.Printf("Server running on port %s\n", os.Getenv("PORT"))
+	r.Run(os.Getenv("PORT"))
 
 	database.CreateDbConnection()
 	database.DBConn.AutoMigrate(&models.User{}, &models.Person{}, &models.UserConfig{})
