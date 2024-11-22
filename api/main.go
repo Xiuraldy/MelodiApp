@@ -69,7 +69,7 @@ func insertPerson(person models.Person, wg *sync.WaitGroup) {
 
 func getData() {
 
-	file, err := os.Open("data/source.data")
+	file, err := os.Open("dataCensus/source.data")
 	if err != nil {
 		log.Fatal(err)
 	}
