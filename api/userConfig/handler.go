@@ -41,7 +41,10 @@ func getUserConfig(c *gin.Context) {
 	}
 
 	var userConfig models.UserConfig
-	database.DBConn.Where("user_id=?", userId).First(&userConfig)
+	if tx := database.DBConn.Where("user_id=?", userId).First(&userConfig); tx.Error != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": tx.Error})
+		return
+	}
 
 	fmt.Println(userConfig)
 
@@ -82,9 +85,22 @@ func updateUserConfig(c *gin.Context) {
 		return
 	}
 
+	userInput.UserID = int(userId)
+
 	tx := database.DBConn.Where("user_id=?", int(userId)).First(&userConfigActual)
-	fmt.Println("tx", int(userId))
-	fmt.Println("tx", tx.Error)
+	if tx.Error != nil {
+		if tx := database.DBConn.Create(&userInput); tx.Error != nil {
+			fmt.Println("entra")
+			if errors.Is(tx.Error, gorm.ErrDuplicatedKey) {
+				c.JSON(http.StatusConflict, gin.H{"error": "userConfig already exists"})
+				return
+			}
+			c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, gin.H{"userConfig": userInput})
+		return
+	}
 
 	userConfigActual.UserID = int(userId)
 	userConfigActual.Age = userInput.Age
@@ -106,21 +122,15 @@ func updateUserConfig(c *gin.Context) {
 	userConfigActual.SortOrder = userInput.SortOrder
 	userConfigActual.Paginator = userInput.Paginator
 
-	fmt.Println("userInput", userInput)
-	fmt.Println("userConfig1", userConfigActual)
+	fmt.Println("userConfigActual", userConfigActual)
 
-	if tx := database.DBConn.Save(&userConfigActual); tx.Error != nil {
-		fmt.Println("tx.Error", tx.Error)
-		if tx := database.DBConn.Create(&userConfigActual); tx.Error != nil {
-			fmt.Println("Entra", tx.Error)
-			if errors.Is(tx.Error, gorm.ErrDuplicatedKey) {
-				c.JSON(http.StatusConflict, gin.H{"error": "userConfig already exists"})
-				return
-			}
-		}
+	if tx := database.DBConn.Model(&userConfigActual).
+		Where("user_id = ?", int(userId)).
+		Select("*").
+		Updates(userConfigActual); tx.Error != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": tx.Error.Error()})
+		return
 	}
-
-	fmt.Println("userConfig", userConfigActual)
 
 	c.JSON(http.StatusOK, gin.H{"userConfigUpdate": userConfigActual})
 }

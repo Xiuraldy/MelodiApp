@@ -4,7 +4,6 @@ import { ref } from 'vue'
 
 export function useConfig() {
   const userConfig = ref<Config>({} as Config)
-  const dataConfig = ref<Config>({} as Config)
 
   async function loadConfig() {
     const baseURL = '/user-config'
@@ -21,5 +20,5 @@ export function useConfig() {
     userConfig.value = data
   }
 
-  return { loadConfig, userConfig, updateConfig, dataConfig }
+  return { loadConfig, userConfig, updateConfig }
 }

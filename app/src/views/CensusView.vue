@@ -6,7 +6,7 @@ import { useConfig } from '@/services/config';
 import type { Config } from '@/types';
 
 const { loadCensus, people, totalRecords } = useCensus()
-const { loadConfig, updateConfig, userConfig, dataConfig } = useConfig()
+const { loadConfig, updateConfig, userConfig } = useConfig()
 
 let pag = '10';
 
@@ -52,7 +52,8 @@ function applyFilters() {
 
   columns.value.forEach((column) => {
     if (column.selection) {
-      filters[column.row] = column.selection; 
+      filters[column.key] = column.selection; 
+      console.log("filters[column.key]",column.key, filters[column.key])
     }
     if (column.sortOrder) {
       sortBy = column.row; 
@@ -96,26 +97,35 @@ function changePages(direction: string) {
   applyFilters()
 }
 
-onMounted(() => {
-  loadConfig()
-  const filters = userConfig.value
+onMounted(async () => {
+  await loadConfig()
+
+  const filters: Record<string, string> = Object.fromEntries(
+    Object.entries(userConfig.value).map(([key, value]) => [key, String(value)])
+  );  
+
   if (filters) {
     columns.value.forEach((column) => {
       if (filters[column.key as keyof Config]) {
-        column.selection = JSON.stringify(filters[column.key as keyof Config]);
+        column.selection = String(filters[column.key as keyof Config]);
       }
     });
 
     pag = filters.paginator || '10';
 
-    const sortByColumn = columns.value.find((col) => col.row === filters.sortBy);
-    if (sortByColumn) {
-      sortByColumn.sortOrder = filters.sortOrder || '';
+    const sortBy = columns.value.find((col) => col.row === filters.sortBy);
+    if (sortBy) {
+      sortBy.sortOrder = filters.sortOrder || '';
     }
 
+    loadCensus({ ...filters })
+    return 
   }
-  loadCensus({ paginator: pag });
+
+   loadCensus({ paginator: pag });
 });
+
+console.log("totalRecords",totalRecords.value)
 
 </script>
 <template>
@@ -168,7 +178,8 @@ onMounted(() => {
         <button class="pag-button" @click="changePages('back')">⬅</button>
         <button class="pag-button" @click="changePages('next')">⮕</button>
       </div>
-      <p>Page {{ parseInt(pag)/10 }} of {{ Math.ceil(totalRecords/10) }}</p>
+      <p v-if="totalRecords">Page {{ parseInt(pag)/10 }} of {{ Math.ceil(totalRecords/10) }}</p>
+      <p v-else>Records Not Found :c</p>
     </div>
   </section>
 </template>
