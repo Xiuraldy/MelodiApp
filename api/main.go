@@ -49,7 +49,7 @@ func main() {
 	if os.Getenv("GIN_MODE") != "release" {
 		err := godotenv.Load()
 		if err != nil {
-			log.Fatal("Unable to load env vars")
+			log.Fatal("Unable to load env vars", err)
 		}
 	}
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
