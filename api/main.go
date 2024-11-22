@@ -60,7 +60,6 @@ func main() {
 			log.Fatal("Unable to load env vars")
 		}
 	}
-
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),
