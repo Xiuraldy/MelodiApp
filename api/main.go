@@ -52,7 +52,7 @@ func loadEnvVars() {
 }
 
 func main() {
-	loadEnvVars()
+	// loadEnvVars()
 
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("DB_HOST"),
