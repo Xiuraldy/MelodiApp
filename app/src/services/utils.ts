@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3334'
 
 interface Options {
   method?: string

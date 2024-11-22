@@ -2,10 +2,11 @@
 import { onMounted, ref } from 'vue'
 import { useCensus } from '@/services/census'
 import { useAuthStore } from '@/stores/auth';
+import { useConfig } from '@/services/config';
+import type { Config } from '@/types';
 
 const { loadCensus, people, totalRecords } = useCensus()
-
-const token = sessionStorage.getItem('token');
+const { loadConfig, updateConfig, userConfig, dataConfig } = useConfig()
 
 let pag = '10';
 
@@ -51,7 +52,7 @@ function applyFilters() {
 
   columns.value.forEach((column) => {
     if (column.selection) {
-      filters[column.key] = column.selection; 
+      filters[column.row] = column.selection; 
     }
     if (column.sortOrder) {
       sortBy = column.row; 
@@ -59,7 +60,7 @@ function applyFilters() {
     }
   });
 
-  sessionStorage.setItem(`censusFilters_${token}`, JSON.stringify({ ...filters, sortBy, sortOrder, paginator: pag }));
+  updateConfig({ ...filters, sortBy, sortOrder, paginator: pag });
   loadCensus({ ...filters, sortBy, sortOrder, paginator: pag })
 }
 
@@ -96,27 +97,24 @@ function changePages(direction: string) {
 }
 
 onMounted(() => {
-  const savedFilters = sessionStorage.getItem(`censusFilters_${token}`);
-  if (savedFilters) {
-    const parsedFilters = JSON.parse(savedFilters);
-
+  loadConfig()
+  const filters = userConfig.value
+  if (filters) {
     columns.value.forEach((column) => {
-      if (parsedFilters[column.key]) {
-        column.selection = parsedFilters[column.key];
+      if (filters[column.key as keyof Config]) {
+        column.selection = JSON.stringify(filters[column.key as keyof Config]);
       }
     });
 
-    pag = parsedFilters.paginator || '10';
+    pag = filters.paginator || '10';
 
-    const sortByColumn = columns.value.find((col) => col.row === parsedFilters.sortBy);
+    const sortByColumn = columns.value.find((col) => col.row === filters.sortBy);
     if (sortByColumn) {
-      sortByColumn.sortOrder = parsedFilters.sortOrder || '';
+      sortByColumn.sortOrder = filters.sortOrder || '';
     }
 
-    loadCensus(parsedFilters);
-  } else {
-    loadCensus({ paginator: pag });
   }
+  loadCensus({ paginator: pag });
 });
 
 </script>

@@ -17,6 +17,7 @@ import (
 	"trucode.app/api/database"
 	"trucode.app/api/models"
 	"trucode.app/api/shared"
+	"trucode.app/api/userConfig"
 	"trucode.app/api/users"
 
 	"gorm.io/gorm"
@@ -28,6 +29,7 @@ func setupRouter() *gin.Engine {
 	users.AddUserRoutes(router)
 	census.AddCensusRoutes(router)
 	auth.AddAuthRoutes(router)
+	userConfig.AddUserConfigRoutes(router)
 
 	return router
 }
@@ -42,7 +44,7 @@ func loadEnvVars() {
 func main() {
 	loadEnvVars()
 	database.CreateDbConnection()
-	database.DBConn.AutoMigrate(&models.User{}, &models.Person{})
+	database.DBConn.AutoMigrate(&models.User{}, &models.Person{}, &models.UserConfig{})
 
 	getData()
 
@@ -57,7 +59,7 @@ func main() {
 
 	router := setupRouter()
 
-	router.Run(":3333")
+	router.Run(":3334")
 }
 
 func insertPerson(person models.Person, wg *sync.WaitGroup) {
@@ -78,7 +80,6 @@ func getData() {
 
 	var wg sync.WaitGroup
 
-	// for _, line := range csvReaderRead[1:10] {
 	for _, line := range csvReaderRead[1:] {
 		wg.Add(1)
 
