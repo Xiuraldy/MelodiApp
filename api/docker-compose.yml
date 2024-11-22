@@ -1,6 +1,7 @@
 services:
   app:
-    build: .
+    build: 
+      context: ./app
     ports:
       - 80:3000
     environment:
@@ -15,7 +16,7 @@ services:
       - api
   api:
     build:
-      context: .
+      context: ./api
       args:
         - PORT=:8080
         - GIN_MODE=release
