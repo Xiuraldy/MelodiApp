@@ -96,7 +96,7 @@ func main() {
 
 	router := setupRouter()
 
-	router.Run(":3334")
+	router.Run(":8080")
 }
 
 func insertPerson(person models.Person, wg *sync.WaitGroup) {
