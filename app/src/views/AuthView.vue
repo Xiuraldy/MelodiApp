@@ -17,10 +17,11 @@ async function signIn() {
 
   const response = await fetch('http://localhost:8080/auth/login', {
     method: 'POST',
+    mode: 'no-cors',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(loginInputs)
+    body: JSON.stringify(loginInputs),
   })
 
   const data = await response.json()
@@ -43,10 +44,11 @@ async function register() {
 
   const response = await fetch('http://localhost:8080/auth/register', {
     method: 'POST',
+    mode: 'no-cors',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(registerInputs)
+    body: JSON.stringify(registerInputs),
   })
 
   const data = await response.json()

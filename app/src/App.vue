@@ -11,7 +11,7 @@ onBeforeMount(authStore.init)
 async function logout() {
   try {
     await apiCall('/auth/logout', {
-      method: 'DELETE'
+      method: 'DELETE',
     })
     authStore.clearSession()
   } catch (error) {
