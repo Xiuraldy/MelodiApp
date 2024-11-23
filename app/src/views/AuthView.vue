@@ -15,7 +15,7 @@ const registerError = ref('')
 
 async function signIn() {
 
-  const response = await fetch('http://localhost:3334/auth/login', {
+  const response = await fetch('http://localhost:8080/auth/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -41,7 +41,7 @@ const registerInputs = reactive({
 
 async function register() {
 
-  const response = await fetch('http://localhost:3334/auth/register', {
+  const response = await fetch('http://localhost:8080/auth/register', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
