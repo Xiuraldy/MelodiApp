@@ -1,27 +1,20 @@
 services:
   app:
-    build: 
-      context: .
+    build:
+      context: ./app
       args:
-        - PORT=3004
-        - VITE_PUBLIC_API_URL=http://api:3004
+        - PORT=3000
+        - VITE_API_URL=$API_URL
     ports:
-      - 80:3004
-    environment:
-      - VITE_PUBLIC_API_URL=http://api:3004
-      - DB_HOST=$DB_HOST
-      - DB_PORT=$DB_PORT
-      - DB_USER=$DB_USER
-      - DB_PASSWORD=$DB_PASSWORD
-      - DB_NAME=$DB_NAME
+      - 80:3000
     restart: on-failure
     depends_on:
       - api
   api:
     build:
-      context: .
+      context: ./api
       args:
-        - PORT=:8080
+        - PORT=:$API_PORT
         - GIN_MODE=release
     environment:
       - DB_HOST=$DB_HOST
@@ -29,6 +22,8 @@ services:
       - DB_USER=$DB_USER
       - DB_PASSWORD=$DB_PASSWORD
       - DB_NAME=$DB_NAME
+    ports:
+      - 8080:8080
     restart: on-failure
     depends_on:
       - db
