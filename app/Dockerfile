@@ -11,7 +11,7 @@ COPY ./package*.json ./
 RUN npm install
 
 ARG VITE_API_URL \
-    PORT=3000
+    PORT=3004
 
 ENV VITE_API_URL=${VITE_API_URL}  \
     PORT=${PORT}
@@ -20,4 +20,4 @@ COPY . .
 
 RUN npm run build
 
-CMD [ "http-server", "dist"]
+CMD [ "http-server", "dist", "-a", "0.0.0.0" ]
