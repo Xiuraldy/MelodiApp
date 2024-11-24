@@ -15,7 +15,7 @@ const registerError = ref('')
 
 async function signIn() {
 
-  const response = await fetch('http://localhost:8080/auth/login', {
+  const response = await fetch('http://54.207.125.158:8080/auth/login', {
     method: 'POST',
     mode: 'cors',
     headers: {
