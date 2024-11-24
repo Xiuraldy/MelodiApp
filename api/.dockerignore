@@ -1,0 +1,21 @@
+# Version control
+.git
+.gitignore
+
+# Go specific
+tmp/
+vendor/
+
+# Environment and config
+.env
+*.env
+.env.*
+
+# IDE specific
+.vscode/
+
+# Logs
+*.log
+
+# OS specific
+.DS_Store 
