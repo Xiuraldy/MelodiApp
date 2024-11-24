@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"gorm.io/driver/postgres"
 	"trucode.app/api/auth"
 	"trucode.app/api/census"
 	"trucode.app/api/database"
@@ -27,11 +29,6 @@ import (
 func setupRouter() *gin.Engine {
 	router := gin.Default()
 	router.Use(shared.Cors())
-
-	router.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{"Success": true})
-	})
-
 	users.AddUserRoutes(router)
 	census.AddCensusRoutes(router)
 	auth.AddAuthRoutes(router)
@@ -41,32 +38,57 @@ func setupRouter() *gin.Engine {
 }
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Warning: .env file not found. Using environment variables.")
+	if os.Getenv("GIN_MODE") != "release" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Unable to load env vars")
+		}
 	}
 
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+	)
 	database.CreateDbConnection()
+	database.DBConn.AutoMigrate(&models.User{}, &models.Person{}, &models.UserConfig{})
+
+	DBConn, err := gorm.Open(postgres.Open(connStr))
+	if err != nil {
+		log.Fatal("Unable to connect to DB")
+	}
 
 	router := setupRouter()
+
+	router.GET("/", func(c *gin.Context) {
+		tx := DBConn.Exec("SELECT 1")
+		if tx.Error != nil {
+			log.Printf("Error al ejecutar consulta: %v", tx.Error)
+			c.JSON(http.StatusInternalServerError, gin.H{"Success": false})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"Success": true})
+	})
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigs
+		clearData()
+		os.Exit(0)
+	}()
+
+	getData()
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-sigs
-		log.Println("Shutting down gracefully...")
-		os.Exit(0)
-	}()
-
-	log.Printf("Server running on port %s", port)
-	if err := router.Run(fmt.Sprintf(":%s", port)); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
-	}
+	log.Printf("Server running on port %s\n", port)
+	router.Run(fmt.Sprintf(":%s", port))
 }
 
 func insertPerson(person models.Person, wg *sync.WaitGroup) {
