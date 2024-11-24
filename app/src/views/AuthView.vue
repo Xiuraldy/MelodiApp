@@ -17,7 +17,7 @@ async function signIn() {
 
   const response = await fetch('http://localhost:8080/auth/login', {
     method: 'POST',
-    mode: 'no-cors',
+    mode: 'cors',
     headers: {
       'Content-Type': 'application/json'
     },
@@ -44,7 +44,7 @@ async function register() {
 
   const response = await fetch('http://localhost:8080/auth/register', {
     method: 'POST',
-    mode: 'no-cors',
+    mode: 'cors',
     headers: {
       'Content-Type': 'application/json'
     },

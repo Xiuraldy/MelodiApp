@@ -14,7 +14,7 @@ export async function apiCall(
   const sessionToken = sessionStorage.getItem('token')
   const response = await fetch(BASE_URL + path, {
     method,
-    mode: 'no-cors',
+    mode: 'cors',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${sessionToken}`,
