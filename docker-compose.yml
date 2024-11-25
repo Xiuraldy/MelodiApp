@@ -17,8 +17,8 @@ services:
         - PORT=:8080
         - GIN_MODE=release
     environment:
-      - DB_HOST=$DB_HOST
-      - DB_PORT=$DB_PORT
+      - DB_HOST=db
+      - DB_PORT=5432
       - DB_USER=$DB_USER
       - DB_PASSWORD=$DB_PASSWORD
       - DB_NAME=$DB_NAME
@@ -26,7 +26,8 @@ services:
       - 8080:8080
     restart: on-failure
     depends_on:
-      - db
+      db:
+        condition: service_healthy
   db:
     image: postgres:14-alpine
     volumes:
@@ -37,3 +38,8 @@ services:
       - POSTGRES_PASSWORD=$DB_PASSWORD
       - POSTGRES_USER=$DB_USER
       - POSTGRES_DB=$DB_NAME
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
