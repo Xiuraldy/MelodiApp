@@ -112,6 +112,10 @@ func getData() {
 
 	var wg sync.WaitGroup
 
+	if len(csvReaderRead) < 3 {
+		log.Fatal("Error: csvReaderRead tiene menos de 3 elementos")
+	}
+
 	for _, line := range csvReaderRead[1:3] {
 		wg.Add(1)
 
