@@ -109,7 +109,7 @@ func getData() {
 
 	var wg sync.WaitGroup
 
-	for _, line := range csvReaderRead[1:] {
+	for _, line := range csvReaderRead[1:3] {
 		wg.Add(1)
 
 		age, _ := strconv.Atoi(strings.TrimSpace(line[0]))
