@@ -20,4 +20,4 @@ COPY . .
 
 RUN npm run build
 
-CMD ["http-server", "dist", "-p", "80", "-a", "0.0.0.0"]
+CMD ["http-server", "dist", "-p", "3000", "-a", "0.0.0.0"]
