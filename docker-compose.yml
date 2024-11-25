@@ -4,7 +4,7 @@ services:
       context: ./app
       args:
         - PORT=3000
-        - VITE_API_URL=http://api:8080
+        - VITE_API_URL=http://localhost:8080
     ports:
       - 80:3000
     restart: on-failure
