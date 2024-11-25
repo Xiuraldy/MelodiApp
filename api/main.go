@@ -105,7 +105,10 @@ func getData() {
 
 	csvReader := csv.NewReader(file)
 
-	csvReaderRead, _ := csvReader.ReadAll()
+	csvReaderRead, err := csvReader.ReadAll()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	var wg sync.WaitGroup
 
