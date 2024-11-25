@@ -9,7 +9,6 @@ const { loadCensus, people, totalRecords } = useCensus()
 const { loadConfig, updateConfig, userConfig } = useConfig()
 
 let pag = '10';
-const isLoading = ref(true)
 
 const selectedAge = ref('');
 const selectedWorkclass = ref('');
@@ -123,16 +122,12 @@ onMounted(async () => {
     await loadCensus({ paginator: pag });
   }
 
-  isLoading.value = false
 });
 
 </script>
 <template>
   <section>
-    <div v-if="isLoading" class="loading-indicator">
-      <p>Loading census data...</p>
-    </div>
-    <div v-else class="table-container">
+    <div class="table-container">
       <table>
         <thead>
           <tr>
