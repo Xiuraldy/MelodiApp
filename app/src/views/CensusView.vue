@@ -53,7 +53,6 @@ function applyFilters() {
   columns.value.forEach((column) => {
     if (column.selection) {
       filters[column.key] = column.selection; 
-      console.log("filters[column.key]",column.key, filters[column.key])
     }
     if (column.sortOrder) {
       sortBy = column.row; 
@@ -111,7 +110,7 @@ onMounted(async () => {
       }
     });
 
-    pag = filters.paginator || '10';
+    pag = '10';
 
     const sortBy = columns.value.find((col) => col.row === filters.sortBy);
     if (sortBy) {
