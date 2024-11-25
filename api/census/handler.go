@@ -96,7 +96,14 @@ func GetCensus(c *gin.Context) {
 		return
 	}
 
-	var paginator, errp = strconv.Atoi(c.Query("paginator"))
+	var queryPaginator string
+	fmt.Println("paginator",c.Query("paginator"))
+	if c.Query("paginator") != "" {
+		queryPaginator = c.Query("paginator")
+	} else {
+		queryPaginator = "10"
+	}
+	var paginator, errp = strconv.Atoi(queryPaginator)
 	if errp != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": errp.Error()})
 		return

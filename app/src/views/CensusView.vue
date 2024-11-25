@@ -99,6 +99,7 @@ function changePages(direction: string) {
 onMounted(async () => {
   await loadConfig()
 
+  console.log("userConfig.value",userConfig.value)
   const filters: Record<string, string> = Object.fromEntries(
     Object.entries(userConfig.value).map(([key, value]) => [key, String(value)])
   );  

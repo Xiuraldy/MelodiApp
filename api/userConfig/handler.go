@@ -42,6 +42,12 @@ func getUserConfig(c *gin.Context) {
 
 	var userConfig models.UserConfig
 	if tx := database.DBConn.Where("user_id=?", userId).First(&userConfig); tx.Error != nil {
+		if tx.Error.Error() == gorm.ErrRecordNotFound.Error() {
+			fmt.Println("-----> No hay registros")
+			c.JSON(http.StatusOK, gin.H{})
+			return
+		}
+		fmt.Println(tx)
 		c.JSON(http.StatusConflict, gin.H{"error": tx.Error})
 		return
 	}
