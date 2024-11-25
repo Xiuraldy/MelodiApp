@@ -110,18 +110,18 @@ onMounted(async () => {
       }
     });
 
-    pag = '10';
+    pag = filters.paginator || '10';
 
     const sortBy = columns.value.find((col) => col.row === filters.sortBy);
     if (sortBy) {
       sortBy.sortOrder = filters.sortOrder || '';
     }
 
-    loadCensus({ ...filters })
+    await loadCensus({ ...filters })
     return 
   }
 
-   loadCensus({ paginator: pag });
+   await loadCensus({ paginator: pag });
 });
 
 </script>
