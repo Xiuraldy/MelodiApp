@@ -98,7 +98,7 @@ func GetCensus(c *gin.Context) {
 
 	var paginator, errp = strconv.Atoi(c.Query("paginator"))
 	if errp != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": errp.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": errp.Error()})
 		return
 	}
 

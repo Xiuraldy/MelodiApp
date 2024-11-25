@@ -125,8 +125,6 @@ onMounted(async () => {
    loadCensus({ paginator: pag });
 });
 
-console.log("totalRecords",totalRecords.value)
-
 </script>
 <template>
   <section>
