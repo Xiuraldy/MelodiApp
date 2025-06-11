@@ -18,15 +18,18 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function setSession(tokenStr: string) {
+    console.log('entra')
     const payload = jwtDecode(tokenStr) as JWTPayload
+    console.log('payload', payload)
     const now = new Date()
-    const diff = payload.MapClaims.eat * 1000 - now.getTime()
+    const diff = payload.exp * 1000 - now.getTime()
     sessionStorage.setItem('token', tokenStr)
-    session.value = payload.session
+    session.value = payload.sub
     setTimeout(() => {
       clearSession()
     }, diff)
-    router.push('/census')
+    console.log('router.push')
+    router.push('/programations')
   }
 
   function clearSession() {

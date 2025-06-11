@@ -15,7 +15,7 @@ const registerError = ref('')
 
 async function signIn() {
 
-  const response = await fetch('http://localhost:8080/auth/login', {
+  const response = await fetch('http://localhost:8080/api/v1/auth/login', {
     method: 'POST',
     mode: 'cors',
     headers: {
@@ -36,13 +36,16 @@ async function signIn() {
 
 const registerInputs = reactive({
   username: '',
+  lastname: '',
   email: '',
-  password: ''
+  password: '',
+  celphone: '',
+  role: ''
 })
 
 async function register() {
 
-  const response = await fetch('http://localhost:8080/auth/register', {
+  const response = await fetch('http://localhost:8080/api/v1/auth/register', {
     method: 'POST',
     mode: 'cors',
     headers: {
@@ -67,30 +70,44 @@ const activeLogin = ref(true);
 
 <template>
   <main>
+    <img v-if="!activeLogin" src="/auth/group 2.jpg" alt="">
     <div class="content-form">
       <form v-if="activeLogin" @submit.prevent="signIn">
-        <h1>Login</h1>
+        <h1>Inicio de Sesión</h1>
         <div class="content-inputs-button">
-          <input v-model="loginInputs.email" type="text" placeholder="Email" />
-          <input v-model="loginInputs.password" type="password" placeholder="Password" />
+          <input v-model="loginInputs.email" type="text" placeholder="Correo Electrónico" />
+          <input v-model="loginInputs.password" type="password" placeholder="Contraseña" />
+          <button>Inicia Sesión</button>
           <div class="error" v-if="loginError">⚠︎ Error: {{ loginError }}</div>
-          <button>Login</button>
         </div>
-        <p>You don't have a user?<a @click="activeLogin = false">Register</a></p>
+        <p>¿No tienes usuario?<a @click="activeLogin = false">Registrate</a></p>
       </form>
   
       <form v-if="!activeLogin" @submit.prevent="register">
-        <h1>Register</h1>
+        <h1>Registro</h1>
         <div class="content-inputs-button">
-          <input v-model="registerInputs.username" type="text" placeholder="Username" />
-          <input v-model="registerInputs.email" type="text" placeholder="Email" />
-          <input v-model="registerInputs.password" type="password" placeholder="Password" />
+          <input v-model="registerInputs.username" type="text" placeholder="Nombre" />
+          <input v-model="registerInputs.lastname" type="text" placeholder="Apellido" />
+          <input v-model="registerInputs.email" type="text" placeholder="Correo Electrónico" />
+          <input v-model="registerInputs.celphone" type="text" placeholder="Número de Celular" />
+          <select v-model="registerInputs.role" type="text">
+            <option value="" disabled selected hidden>Soy...</option>
+            <option value="singer">Cantante</option>
+            <option value="guitarist">Guitarrista</option>
+            <option value="electricGuitarist">Guitarrista Eléctrico</option>
+            <option value="pianist">Pianista</option>
+            <option value="saxophonist">Saxofonista</option>
+            <option value="drummer">Baterista</option>
+            <option value="bassist">Bajista</option>
+          </select>
+          <input v-model="registerInputs.password" type="password" placeholder="Contraseña" />
+          <button>Registrate</button>
           <div class="error" v-if="registerError">⚠︎ Error: {{ registerError }}</div>
-          <button>Register</button>
         </div>
-        <p>Do you already have a user?<a @click="activeLogin = true">Login</a></p>
+        <p>¿Tienes usuario?<a @click="activeLogin = true">Inicia Sesión</a></p>
       </form>
     </div>
+    <img v-if="activeLogin" src="/auth/group.jpg" alt="">
   </main>
 </template>
 
@@ -98,15 +115,21 @@ const activeLogin = ref(true);
 
 h1 {
   width: -webkit-fill-available;
-  background-color: #fff;
   display: flex;
-  justify-content: center;
-  color: var(--color-secundary);
-  font-weight: 200;
-  border-top-left-radius: 40px;
-  border-top-right-radius: 40px;
-  border: 2px solid var(--color-secundary);
+  justify-content: flex-start;
+  color: var(--black);
+  font-weight: 600;
+}
 
+main {
+  display: flex;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+}
+
+img {
+  height: 70vh;
+  border-radius: 50px;
 }
 
 .content-form {
@@ -119,12 +142,11 @@ h1 {
 form {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: center;
-  background-color: var(--color-secundary);
   height: 70vh;
   width: 50vh;
   border-radius: 50px;
+  justify-content: space-evenly;
 }
 
 template {
@@ -136,17 +158,17 @@ template {
   flex-direction: column;
   justify-content: center;
   width: -webkit-fill-available;
-  padding: 30px;
 }
 
-input, a {
+input, a, select {
+  appearance: none;
   font-family: poppins;
   font-size: medium;
   outline: none;
   border-radius: 5px;
-  border: 2px solid #fff;
+  border: 2px solid var(--black);
+  color: var(--black);
   background-color: transparent;
-  color: #fff;
   cursor: pointer;
   margin: 5px;
 }
@@ -157,8 +179,13 @@ input {
 }
 
 input::placeholder {
-  color: #fff;
+  color: var(--black);
 }
+
+select {
+  padding-left: 10px;
+}
+
 
 button {
   border-radius: 5px;
@@ -179,16 +206,13 @@ p {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: var(--color-primary);
   width: -webkit-fill-available;
-  color: #fff;
-  border-bottom-left-radius: 50px;
-  border-bottom-right-radius: 50px;
+  color: var(--black);
 }
 
 a {
   font-size: initial;
-  border: 2px solid #fff;
+  border: 2px solid var(--black);
   padding-right: 6px;
   padding-left: 6px;
   margin-top: -1px;
@@ -209,6 +233,10 @@ a {
   form {
     width: -webkit-fill-available;
     margin: 30px;
+  }
+
+  img {
+    display: none;
   }
 }
 </style>

@@ -29,30 +29,32 @@ func Register(c *gin.Context) {
 	user := models.User{
 		Username: userInput.Username,
 		Email:    userInput.Email,
+		Celphone: userInput.Celphone,
+		Role:     userInput.Role,
 		Password: userInput.Password,
 	}
 
 	if userInput.Username == "" || userInput.Email == "" || userInput.Password == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incomplete fields"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Campos Incompletos"})
 		return
 	}
 
 	emailRegex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	re := regexp.MustCompile(emailRegex)
 	if !re.MatchString(userInput.Email) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Formato de Correo Invalido"})
 		return
 	}
 
 	var existingUser models.User
 	if err := database.DBConn.Where("email = ?", userInput.Email).First(&existingUser).Error; err == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "Email already exists"})
+		c.JSON(http.StatusConflict, gin.H{"error": "Correo Existente"})
 		return
 	}
 
 	if tx := database.DBConn.Create(&user); tx.Error != nil {
 		if errors.Is(tx.Error, gorm.ErrDuplicatedKey) {
-			c.JSON(http.StatusConflict, gin.H{"error": "Username already exists"})
+			c.JSON(http.StatusConflict, gin.H{"error": "Nombre Existente"})
 			return
 		}
 	}
@@ -93,14 +95,14 @@ func Login(c *gin.Context) {
 	c.BindJSON(&input)
 
 	if input.Email == "" || input.Password == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incomplete fields"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Campos Incompletos"})
 		return
 	}
 
 	emailRegex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	re := regexp.MustCompile(emailRegex)
 	if !re.MatchString(input.Email) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Formato de Correo Invalido"})
 		return
 	}
 
@@ -109,7 +111,7 @@ func Login(c *gin.Context) {
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password))
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Credenciales Invalidas"})
 		return
 	}
 
@@ -160,7 +162,7 @@ func Logout(c *gin.Context) {
 	claims, _ := token.Claims.(*shared.Payload)
 	_, exists := shared.Sessions[claims.Session]
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "You don't have permission"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tu No Tienes Permisos"})
 		return
 	}
 

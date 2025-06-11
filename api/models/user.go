@@ -9,12 +9,16 @@ type User struct {
 	gorm.Model
 	Username string `json:"username"`
 	Email    string `json:"email"`
+	Celphone string `json:"celphone"`
+	Role     string `json:"role"`
 	Password string `json:"password"`
 }
 
 type UserInput struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
+	Celphone string `json:"celphone"`
+	Role     string `json:"role"`
 	Password string `json:"password"`
 }
 

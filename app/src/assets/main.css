@@ -9,6 +9,7 @@
   justify-content: space-between;
   font-family: poppins;
   width: -webkit-fill-available;
+  background-color: #fcfafa;
 }
 
 a,
@@ -21,9 +22,9 @@ a,
 button {
   font-family: poppins;
   border-radius: 5px;
-  border: 2px solid #fff;
+  border: 2px solid var(--black);
   background-color: transparent;
-  color: #fff;
+  color: var(--black);
   cursor: pointer;
   transition: all 0.3s ease;
 }

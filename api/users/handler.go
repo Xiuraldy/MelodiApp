@@ -10,7 +10,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"trucode.app/api/auth"
-	"trucode.app/api/census"
 	"trucode.app/api/database"
 	"trucode.app/api/models"
 	"trucode.app/api/shared"
@@ -20,7 +19,6 @@ func setupRouter() *gin.Engine {
 	router := gin.Default()
 	router.Use(shared.Cors())
 	AddUserRoutes(router)
-	census.AddCensusRoutes(router)
 	auth.AddAuthRoutes(router)
 
 	return router
